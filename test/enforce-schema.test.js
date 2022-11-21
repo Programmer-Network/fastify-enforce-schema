@@ -9,12 +9,7 @@ test("Should fail if body schema is missing", t => {
 
   const fastify = Fastify();
 
-  fastify
-    .register(enforceSchema, { required: ["body", "response"] })
-    .ready(err => {
-      if (err) console.error(err);
-      console.log("READY");
-    });
+  fastify.register(enforceSchema, { required: ["body", "response"] });
 
   fastify.post(
     "/",
@@ -32,7 +27,6 @@ test("Should fail if body schema is missing", t => {
       },
     },
     (req, reply) => {
-      console.log("ITS OK");
       reply.send("ok");
     }
   );
@@ -44,7 +38,6 @@ test("Should fail if body schema is missing", t => {
       body: { name: "foo" },
     },
     (err, res) => {
-      console.log("TEST DONE");
       t.error(err);
       t.equal(res.statusCode, 200);
       t.equal(res.payload, "ok");
