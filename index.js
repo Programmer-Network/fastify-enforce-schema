@@ -1,7 +1,7 @@
 const fp = require("fastify-plugin");
-const { getErrrorMessage } = require("./utils");
+const { getErrrorMessage, hasProperties } = require("./utils");
 
-function FastifyEnforceSchema(fastify, opts, next) {
+function FastifyEnforceSchema(fastify, opts, done) {
   if (!opts) {
     opts = {};
   }
@@ -18,28 +18,34 @@ function FastifyEnforceSchema(fastify, opts, next) {
 
   fastify.addHook("onRoute", routeOptions => {
     if (exclude.includes(routeOptions.url) || routeOptions.path === "*") {
-      next();
+      done();
       return;
     }
 
-    if (required.indexOf("response") !== -1 && !routeOptions.schema?.response) {
+    if (
+      required.indexOf("response") !== -1 &&
+      !hasProperties(routeOptions, "response")
+    ) {
       throw new Error(getErrrorMessage("response", routeOptions.path));
     }
 
     if (
       ["POST", "PUT", "PATCH"].includes(routeOptions.method) &&
       required.indexOf("body") !== -1 &&
-      !routeOptions.schema?.body
+      !hasProperties(routeOptions, "body")
     ) {
       throw new Error(getErrrorMessage("body", routeOptions.path));
     }
 
-    if (required.indexOf("params") !== -1 && !routeOptions.schema?.params) {
+    if (
+      required.indexOf("params") !== -1 &&
+      !hasProperties(routeOptions, "params")
+    ) {
       throw new Error(getErrrorMessage("params", routeOptions.path));
     }
   });
 
-  next();
+  done();
 }
 
 const _fastifyEnforceSchema = fp(FastifyEnforceSchema, {
