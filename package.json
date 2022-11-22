@@ -1,12 +1,12 @@
 {
-  "name": "@fastify/enforce-schema",
+  "name": "fastify-enforce-schema",
   "url": "",
   "author": "Aleksandar Grbic - (https://programmer.network)",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Enforce AJV schemas across your endpoints.",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/fastify/fastify-cors.git"
+    "url": "git+https://github.com/agjs/fastify-enforce-schema.git"
   },
   "main": "index.js",
   "types": "index.d.ts",

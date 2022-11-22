@@ -50,7 +50,7 @@ function FastifyEnforceSchema(fastify, opts, done) {
 
 const _fastifyEnforceSchema = fp(FastifyEnforceSchema, {
   fastify: "4.x",
-  name: "@fastify/enforce-schema",
+  name: "fastify-enforce-schema",
 });
 
 module.exports = _fastifyEnforceSchema;
