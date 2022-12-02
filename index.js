@@ -17,7 +17,20 @@ function FastifyEnforceSchema(fastify, opts, done) {
   const { required, exclude } = opts;
 
   fastify.addHook("onRoute", routeOptions => {
-    if (exclude.includes(routeOptions.url) || routeOptions.path === "*") {
+    if (
+      [
+        "/docs",
+        "/docs/",
+        "/docs/uiConfig",
+        "/docs/initOAuth",
+        "/docs/json",
+        "/docs/yaml",
+        "/docs/*",
+        "/docs/static/*",
+        ...exclude,
+      ].includes(routeOptions.url) ||
+      routeOptions.path === "*"
+    ) {
       done();
       return;
     }
