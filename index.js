@@ -1,5 +1,5 @@
 const fp = require("fastify-plugin");
-const { getErrrorMessage, hasProperties } = require("./utils");
+const { getErrrorMessage, hasProperties, initialExcludes } = require("./utils");
 
 function FastifyEnforceSchema(fastify, opts, done) {
   if (!opts) {
@@ -18,28 +18,43 @@ function FastifyEnforceSchema(fastify, opts, done) {
 
   fastify.addHook("onRoute", routeOptions => {
     if (
-      [
-        "/docs",
-        "/docs/",
-        "/docs/uiConfig",
-        "/docs/initOAuth",
-        "/docs/json",
-        "/docs/yaml",
-        "/docs/*",
-        "/docs/static/*",
-        ...exclude,
-      ].includes(routeOptions.url) ||
-      routeOptions.path === "*"
+      [...initialExcludes, ...exclude].includes(routeOptions.url) ||
+      routeOptions.path === "*" ||
+      !routeOptions.path
     ) {
       done();
       return;
     }
 
-    if (
-      required.indexOf("response") !== -1 &&
-      !hasProperties(routeOptions, "response")
-    ) {
-      throw new Error(getErrrorMessage("response", routeOptions.path));
+    if (!routeOptions?.schema) {
+      throw new Error(`schema missing at the path "${routeOptions.path}"`);
+    }
+
+    if (required.indexOf("response") !== -1) {
+      const schema = Object.keys(routeOptions?.schema?.response || []);
+
+      if (!routeOptions?.schema?.response) {
+        throw new Error(getErrrorMessage("response", routeOptions.path));
+      }
+
+      if (
+        routeOptions?.schema?.response &&
+        !Object.keys(routeOptions?.schema?.response || []).length
+      ) {
+        throw new Error(`No HTTP status codes provided in the response schema`);
+      }
+
+      schema.forEach(value => {
+        if (!Number.isInteger(parseInt(value, 10))) {
+          throw new Error(
+            `"${value}" is not a number. HTTP status codes from 100 - 599 supported`
+          );
+        }
+
+        if (value < 100 || value > 599) {
+          throw new Error(`HTTP status codes from 100 - 599 supported`);
+        }
+      });
     }
 
     if (
