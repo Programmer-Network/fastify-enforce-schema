@@ -3,7 +3,12 @@
 const { test } = require("tap");
 const Fastify = require("fastify");
 const enforceSchema = require("../index.js");
-const { getErrrorMessage, hasProperties } = require("../utils.js");
+const {
+  getErrrorMessage,
+  hasProperties,
+  isSchemaTypeExcluded,
+  isHTTPVerbExcluded,
+} = require("../utils.js");
 
 test("Should fail if schema is missing", async t => {
   t.plan(1);
@@ -17,7 +22,7 @@ test("Should fail if schema is missing", async t => {
       reply.code(201).send("ok");
     });
   } catch (error) {
-    t.equal(error.message, `schema missing at the path "/foo"`);
+    t.equal(error.message, `schema missing at the path POST: "/foo"`);
   }
 });
 
@@ -33,7 +38,7 @@ test("Should fail if body schema is missing", async t => {
       reply.code(201).send("ok");
     });
   } catch (error) {
-    t.equal(error.message, "/foo is missing a body schema");
+    t.equal(error.message, "POST: /foo is missing a body schema");
   }
 });
 
@@ -48,7 +53,7 @@ test("Should fail if response schema is missing", async t => {
       reply.code(201).send("ok");
     });
   } catch (error) {
-    t.equal(error.message, "/foo is missing a response schema");
+    t.equal(error.message, "POST: /foo is missing a response schema");
   }
 });
 
@@ -133,21 +138,24 @@ test("Should fail if params schema is missing", async t => {
       reply.code(201).send("ok");
     });
   } catch (error) {
-    t.equal(error.message, "/foo is missing a params schema");
+    t.equal(error.message, "POST: /foo is missing a params schema");
   }
 });
 
 test("getErrorMessage should return a proper message", async t => {
   t.plan(3);
 
-  t.equal(getErrrorMessage("body", "/bar"), "/bar is missing a body schema");
   t.equal(
-    getErrrorMessage("response", "/bar"),
-    "/bar is missing a response schema"
+    getErrrorMessage("body", { path: "/bar", method: "PUT" }),
+    "PUT: /bar is missing a body schema"
   );
   t.equal(
-    getErrrorMessage("params", "/bar"),
-    "/bar is missing a params schema"
+    getErrrorMessage("response", { path: "/bar", method: "PUT" }),
+    "PUT: /bar is missing a response schema"
+  );
+  t.equal(
+    getErrrorMessage("params", { path: "/bar", method: "PUT" }),
+    "PUT: /bar is missing a params schema"
   );
 });
 
@@ -155,6 +163,36 @@ test("hasProperties should return 0 if no properties", async t => {
   t.plan(1);
 
   t.equal(hasProperties(null, "whatever"), false);
+});
+
+test("isSchemaTypeExcluded should return true if its excluded inside 'excludedSchemas'", async t => {
+  t.plan(10);
+
+  t.equal(
+    isSchemaTypeExcluded({ excludedSchemas: ["response"] }, "response"),
+    true
+  );
+
+  t.equal(isSchemaTypeExcluded({ excludedSchemas: ["body"] }, "body"), true);
+  t.equal(
+    isSchemaTypeExcluded({ excludedSchemas: ["params"] }, "params"),
+    true
+  );
+
+  t.equal(
+    isSchemaTypeExcluded(
+      { excludedSchemas: ["params", "body", "response"] },
+      "params"
+    ),
+    true
+  );
+
+  t.equal(isSchemaTypeExcluded({ excludedSchemas: [] }, "params"), false);
+  t.equal(isSchemaTypeExcluded({ excludedSchemas: [] }, "body"), false);
+  t.equal(isSchemaTypeExcluded({ excludedSchemas: [] }, "response"), false);
+  t.equal(isSchemaTypeExcluded(null, "response"), false);
+  t.equal(isSchemaTypeExcluded(undefined, "body"), false);
+  t.equal(isSchemaTypeExcluded(), false);
 });
 
 test("hasProperties should return true if at least one property exists", async t => {
@@ -182,14 +220,14 @@ test("hasProperties should return true if at least one property exists", async t
   t.equal(hasProperties(schema, "body"), true);
 });
 
-test("enforce should be disabled for excluded paths", async t => {
+test("enforce should be disabled for excluded paths without excludedSchemas property", async t => {
   t.plan(2);
 
   const fastify = Fastify();
 
   await fastify.register(enforceSchema, {
     required: ["response"],
-    exclude: ["/foo"],
+    exclude: [{ url: "/foo" }],
   });
 
   fastify.get("/foo", {}, (req, reply) => {
@@ -203,4 +241,35 @@ test("enforce should be disabled for excluded paths", async t => {
 
   t.equal(res.statusCode, 200);
   t.equal(res.payload, "exclude works");
+});
+
+test("enforce should be disabled at the body schema", async t => {
+  t.plan(2);
+
+  const fastify = Fastify();
+
+  await fastify.register(enforceSchema, {
+    required: ["body"],
+    exclude: [
+      { url: "/foo", excludedSchemas: ["body"], excludedHTTPVerbs: ["GET"] },
+    ],
+  });
+
+  fastify.post(
+    "/foo",
+    {
+      schema: {},
+    },
+    (req, reply) => {
+      reply.code(200).send("body schema excluded for /foo");
+    }
+  );
+
+  const res = await fastify.inject({
+    method: "POST",
+    url: "/foo",
+  });
+
+  t.equal(res.statusCode, 200);
+  t.equal(res.payload, "body schema excluded for /foo");
 });

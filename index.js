@@ -1,5 +1,12 @@
 const fp = require("fastify-plugin");
-const { getErrrorMessage, hasProperties, initialExcludes } = require("./utils");
+const {
+  getErrrorMessage,
+  hasProperties,
+  initialExcludes,
+  isSchemaTypeExcluded,
+  SCHEMA_TYPES,
+  isHTTPVerbExcluded,
+} = require("./utils");
 
 function FastifyEnforceSchema(fastify, opts, done) {
   if (!opts) {
@@ -17,24 +24,38 @@ function FastifyEnforceSchema(fastify, opts, done) {
   const { required, exclude } = opts;
 
   fastify.addHook("onRoute", routeOptions => {
-    if (
-      [...initialExcludes, ...exclude].includes(routeOptions.url) ||
-      routeOptions.path === "*" ||
-      !routeOptions.path
-    ) {
+    if (routeOptions.path === "*" || !routeOptions.path) {
+      done();
+      return;
+    }
+
+    const excludedEntity = [...initialExcludes, ...exclude].find(
+      ({ url }) => url === routeOptions.path
+    );
+
+    const hasSchemas =
+      typeof excludedEntity === "object" &&
+      Object.prototype.hasOwnProperty.call(excludedEntity, "excludedSchemas");
+
+    if (excludedEntity && !hasSchemas) {
       done();
       return;
     }
 
     if (!routeOptions?.schema) {
-      throw new Error(`schema missing at the path "${routeOptions.path}"`);
+      throw new Error(
+        `schema missing at the path ${routeOptions.method}: "${routeOptions.path}"`
+      );
     }
 
-    if (required.indexOf("response") !== -1) {
+    if (
+      !isSchemaTypeExcluded(excludedEntity, SCHEMA_TYPES.response) &&
+      required.indexOf(SCHEMA_TYPES.response) !== -1
+    ) {
       const schema = Object.keys(routeOptions?.schema?.response || []);
 
       if (!routeOptions?.schema?.response) {
-        throw new Error(getErrrorMessage("response", routeOptions.path));
+        throw new Error(getErrrorMessage(SCHEMA_TYPES.response, routeOptions));
       }
 
       if (
@@ -56,20 +77,21 @@ function FastifyEnforceSchema(fastify, opts, done) {
         }
       });
     }
-
     if (
+      !isSchemaTypeExcluded(excludedEntity, SCHEMA_TYPES.body) &&
       ["POST", "PUT", "PATCH"].includes(routeOptions.method) &&
-      required.indexOf("body") !== -1 &&
-      !hasProperties(routeOptions, "body")
+      required.indexOf(SCHEMA_TYPES.body) !== -1 &&
+      !hasProperties(routeOptions, SCHEMA_TYPES.body)
     ) {
-      throw new Error(getErrrorMessage("body", routeOptions.path));
+      throw new Error(getErrrorMessage(SCHEMA_TYPES.body, routeOptions));
     }
 
     if (
-      required.indexOf("params") !== -1 &&
-      !hasProperties(routeOptions, "params")
+      !isSchemaTypeExcluded(excludedEntity, SCHEMA_TYPES.params) &&
+      required.indexOf(SCHEMA_TYPES.params) !== -1 &&
+      !hasProperties(routeOptions, SCHEMA_TYPES.params)
     ) {
-      throw new Error(getErrrorMessage("params", routeOptions.path));
+      throw new Error(getErrrorMessage(SCHEMA_TYPES.params, routeOptions));
     }
   });
 
