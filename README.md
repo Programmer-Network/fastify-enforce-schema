@@ -16,7 +16,8 @@ const enforceSchema = require("fastify-enforce-schema");
 
 const options = {
   required: ["response", "body", "params"], // available schemas that you'd want to enforce
-  exclude: ["/api/v1/foo/:bar"], // optional, path names that you want to exclude
+  exclude: [{ url: "/api/v1/foo/:bar", excludedSchemas: ["body"] }],
+  // don't enforce body schema validation for a path /api/v1/foo/:bar
 };
 
 fastify.register(enforceSchema, options);
@@ -27,4 +28,4 @@ fastify.register(enforceSchema, options);
 - **required**: response, body or params
   Note that the body schema will only be enforced on POST, PUT and PATCH HTTPS verbs
 
-- **exclude**: Endpoints to exclude by the _routeOptions.path_
+- **exclude**: Endpoints to exclude by the _routeOptions.path_. Each exclude is an object, with a `url` and optional, `excludeSchemas` array. If the `excludeSchemas` array is not passed, validation for all 3 schemas (`body`, `respone`, `params`) is disabled.
