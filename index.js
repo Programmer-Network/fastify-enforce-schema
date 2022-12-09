@@ -21,12 +21,41 @@ function FastifyEnforceSchema(fastify, opts, done) {
     opts.exclude = [];
   }
 
-  const { required, exclude } = opts;
+  if (!Object.prototype.hasOwnProperty.call(opts, 'excludeOnFalseSchema')) {
+    opts.excludeOnFalseSchema = false;
+  }
 
-  fastify.addHook("onRoute", routeOptions => {
-    if (routeOptions.path === "*" || !routeOptions.path) {
+  const { required, exclude, excludeOnFalseSchema } = opts;
+
+  fastify.addHook("onRoute", (routeOptions) => {
+    if (
+      routeOptions.path === "*" ||
+      !routeOptions.path ||
+      (excludeOnFalseSchema && routeOptions.schema === false)
+    ) {
       done();
       return;
+    }
+
+    if (excludeOnFalseSchema && typeof routeOptions.schema === "object") {
+      const excludedEntity = exclude.find(
+        ({ url }) => url === routeOptions.path
+      );
+      const excludedSchemas = [];
+
+      Object.entries(routeOptions.schema).forEach(([key, value]) => {
+        if (value === false) {
+          excludedSchemas.push(key);
+        }
+      });
+
+      if (excludedEntity) {
+        excludedEntity.excludedSchemas = [
+          ...new Set([...excludedEntity.excludedSchemas, ...excludedSchemas]),
+        ];
+      } else {
+        exclude.push({ url: routeOptions.path, excludedSchemas });
+      }
     }
 
     const excludedEntity = [...initialExcludes, ...exclude].find(
