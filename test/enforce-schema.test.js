@@ -243,6 +243,52 @@ test("enforce should be disabled for excluded paths without excludedSchemas prop
   t.equal(res.payload, "exclude works");
 });
 
+test("enforce should be disabled for excluded paths via excludeOnFalseSchema option directly on schema", async (t) => {
+  t.plan(2);
+
+  const fastify = Fastify();
+
+  await fastify.register(enforceSchema, {
+    required: ["response"],
+    excludeOnFalseSchema: true,
+  });
+
+  fastify.get("/foo", { schema: false }, (req, reply) => {
+    reply.code(200).send("exclude works");
+  });
+
+  const res = await fastify.inject({
+    method: "GET",
+    url: "/foo",
+  });
+
+  t.equal(res.statusCode, 200);
+  t.equal(res.payload, "exclude works");
+});
+
+test("enforce should be disabled for excluded paths via excludeOnFalseSchema option directly on schema.response", async (t) => {
+  t.plan(2);
+
+  const fastify = Fastify();
+
+  await fastify.register(enforceSchema, {
+    required: ["response"],
+    excludeOnFalseSchema: true,
+  });
+
+  fastify.get("/foo", { schema: { response: false } }, (req, reply) => {
+    reply.code(200).send("exclude works");
+  });
+
+  const res = await fastify.inject({
+    method: "GET",
+    url: "/foo",
+  });
+
+  t.equal(res.statusCode, 200);
+  t.equal(res.payload, "exclude works");
+});
+
 test("enforce should be disabled at the body schema", async t => {
   t.plan(2);
 
@@ -272,4 +318,43 @@ test("enforce should be disabled at the body schema", async t => {
 
   t.equal(res.statusCode, 200);
   t.equal(res.payload, "body schema excluded for /foo");
+});
+
+test("No http status codes set in schema for required schema type", async (t) => {
+  t.plan(1);
+
+  const fastify = Fastify();
+
+  await fastify.register(enforceSchema, {
+    required: ["response"],
+  });
+
+  try {
+    fastify.get("/foo", { schema: { response: {} } }, (req, reply) => {
+      reply.code(200).send("exclude works");
+    });
+  } catch (err) {
+    t.equal(
+      err.message,
+      "No HTTP status codes provided in the response schema"
+    );
+  }
+});
+
+test("Http status code outside support set in schema for required schema type", async (t) => {
+  t.plan(1);
+
+  const fastify = Fastify();
+
+  await fastify.register(enforceSchema, {
+    required: ["response"],
+  });
+
+  try {
+    fastify.get("/foo", { schema: { response: { 600: {} } } }, (req, reply) => {
+      reply.code(200).send("exclude works");
+    });
+  } catch (err) {
+    t.equal(err.message, "HTTP status codes from 100 - 599 supported");
+  }
 });

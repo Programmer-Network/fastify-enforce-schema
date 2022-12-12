@@ -23,7 +23,7 @@ enum SchemaTypes {
   Params = "params",
 }
 
-declare namespace fasticyEnforceSchema {
+declare namespace fastifyEnforceSchema {
   export type OriginFunction = (
     origin: string,
     callback: OriginCallback
@@ -35,6 +35,22 @@ declare namespace fasticyEnforceSchema {
      * A list of endpoints to exclude by the route path
      */
     exclude: string[];
+    /**
+     * If true, the plugin will not throw an error if the schema or schema types is equal to false
+     * @default false
+     * @example
+     * fastify.register(fastifyEnforceSchema, { excludeOnFalseSchema: true })
+     *
+     * fastify.get('/', { schema: false }, (req, reply) => {
+     *  reply.send({ hello: 'world' })
+     * })
+     * // or
+     * fastify.get('/test', { schema: { body: false } }, (req, reply) => {
+     *  reply.send({ hello: 'world' })
+     * })
+     * // no error will be thrown
+     */
+    excludeOnFalseSchema: boolean;
   }
 
   export interface FastifyEnforceSchemaOptionsDelegateCallback {
