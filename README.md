@@ -26,6 +26,19 @@ fastify.register(enforceSchema, options);
 ### options
 
 - **required**: response, body or params
-  Note that the body schema will only be enforced on POST, PUT and PATCH HTTPS verbs
+
+  _Note_ - The body schema will only be enforced on POST, PUT and PATCH
 
 - **exclude**: Endpoints to exclude by the _routeOptions.path_. Each exclude is an object, with a `url` and optional, `excludeSchemas` array. If the `excludeSchemas` array is not passed, validation for all 3 schemas (`body`, `respone`, `params`) is disabled.
+
+- **excludeOnFalseSchema** - If your controllers aren't returning anything, make sure to set the `response` schema to false. And then, set `excludeOnFalseSchema` to `true`, so that this plugin doesn't return errors for any given controller that has a response schema set to false.
+
+```js
+await fastify.register(enforceSchema, {
+  required: ["response"],
+  excludeOnFalseSchema: true,
+
+fastify.get("/foo", { schema: { response: false } }, (req, reply) => {
+  reply.code(200).send("exclude works");
+});
+```
