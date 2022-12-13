@@ -8,9 +8,9 @@ This plugin enables you to enforce `response`, `body` and `params` schemas on yo
 
 The plugin works by `"hooking"` into [`onRoute hook`](https://www.fastify.io/docs/latest/Reference/Hooks/#onroute) which as described in the docs, triggers when a new route is registered.
 
-## Install
+_This plugin is built together with our [Programmer Network](https://programmer.network/) Community. You can join us on [Twitch](https://twitch.tv/programmer_network) and [Discord](https://discord.gg/ysnpXnY7ba)._
 
----
+## Install
 
 Using [npm](https://nodejs.org/en/):
 
@@ -21,8 +21,6 @@ Using [yarn](https://yarnpkg.com/):
 - `yarn add fastify-enforce-schema`
 
 ## Usage
-
----
 
 ```js
 import fastify from "fastify";
@@ -38,8 +36,6 @@ fastify.register(enforceSchema, options);
 ```
 
 ## Options
-
----
 
 - **required**: response, body or params
 
