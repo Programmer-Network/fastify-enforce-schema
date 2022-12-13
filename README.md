@@ -1,4 +1,4 @@
-# fastify-enforce-schema
+# Fastify Enforce Schema
 
 <p align="center">
   <img width="250" src="./assets/images/badge.png">
