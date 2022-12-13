@@ -1,18 +1,32 @@
 # fastify-enforce-schema
 
-This plugin enables you to enforce _response_, _body_ or _params_ schemas on your controllers. The sentiment behind this is that no endpoint should ever be left without validation, and now you can enforce this on your application level, so no endpoints are released without the validation.
+<p align="center">
+  <img width="250" src="./assets/images/badge.png">
+</p>
+
+This plugin enables you to enforce `response`, `body` and `params` schemas on your controllers. The sentiment behind this is that no endpoint should ever be left without validation, and now you can enforce this on your application level, so no endpoints are released without the validation.
+
+The plugin works by `"hooking"` into [`onRoute hook`](https://www.fastify.io/docs/latest/Reference/Hooks/#onroute) which as described in the docs, triggers when a new route is registered.
 
 ## Install
 
-> npm i fastify-enforce-schema
+---
 
-> yarn add fastify-enforce-schema
+Using [npm](https://nodejs.org/en/):
+
+- `npm i fastify-enforce-schema`
+
+Using [yarn](https://yarnpkg.com/):
+
+- `yarn add fastify-enforce-schema`
 
 ## Usage
 
+---
+
 ```js
-const fastify = require("fastify")();
-const enforceSchema = require("fastify-enforce-schema");
+import fastify from "fastify";
+import enforceSchema from "fastify-enforce-schema";
 
 const options = {
   required: ["response", "body", "params"], // available schemas that you'd want to enforce
@@ -23,7 +37,9 @@ const options = {
 fastify.register(enforceSchema, options);
 ```
 
-### options
+## Options
+
+---
 
 - **required**: response, body or params
 
@@ -37,8 +53,9 @@ fastify.register(enforceSchema, options);
 await fastify.register(enforceSchema, {
   required: ["response"],
   excludeOnFalseSchema: true,
+});
 
 fastify.get("/foo", { schema: { response: false } }, (req, reply) => {
-  reply.code(200).send("exclude works");
+  reply.code(200);
 });
 ```
