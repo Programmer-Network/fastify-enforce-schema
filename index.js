@@ -52,9 +52,9 @@ function FastifyEnforceSchema (fastify, opts, done) {
     }
 
     if (
+      routeOptions?.schema?.response !== false &&
       !isSchemaTypeExcluded(excludedEntity, SCHEMA_TYPES.response) &&
-      required.indexOf(SCHEMA_TYPES.response) !== -1 &&
-      routeOptions?.schema?.response !== false
+      required.indexOf(SCHEMA_TYPES.response) !== -1
     ) {
       const schema = Object.keys(routeOptions?.schema?.response || [])
 
@@ -82,20 +82,21 @@ function FastifyEnforceSchema (fastify, opts, done) {
       })
     }
     if (
+      routeOptions?.schema?.body !== false &&
       !isSchemaTypeExcluded(excludedEntity, SCHEMA_TYPES.body) &&
       ['POST', 'PUT', 'PATCH'].includes(routeOptions.method) &&
       required.indexOf(SCHEMA_TYPES.body) !== -1 &&
-      !hasProperties(routeOptions, SCHEMA_TYPES.body) &&
-      routeOptions?.schema?.body !== false
+      !hasProperties(routeOptions, SCHEMA_TYPES.body)
     ) {
       throw new Error(getErrrorMessage(SCHEMA_TYPES.body, routeOptions))
     }
 
     if (
+      routeOptions?.schema?.params !== false &&
+      new RegExp(/:\w+/).test(routeOptions.url) &&
       !isSchemaTypeExcluded(excludedEntity, SCHEMA_TYPES.params) &&
       required.indexOf(SCHEMA_TYPES.params) !== -1 &&
-      !hasProperties(routeOptions, SCHEMA_TYPES.params) &&
-      routeOptions?.schema?.params !== false
+      !hasProperties(routeOptions, SCHEMA_TYPES.params)
     ) {
       throw new Error(getErrrorMessage(SCHEMA_TYPES.params, routeOptions))
     }

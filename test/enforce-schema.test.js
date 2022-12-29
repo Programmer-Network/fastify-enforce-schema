@@ -125,6 +125,27 @@ test('Should pass if the keys in the response schema are valid HTTP codes', asyn
   t.equal(res.payload, 'ok')
 })
 
+test('Should NOT fail if params schema is missing', async (t) => {
+  t.plan(2)
+
+  const fastify = Fastify()
+
+  await fastify.register(enforceSchema, { required: ['params'] })
+
+  
+  fastify.get('/foo', { schema: {} }, (req, reply) => {
+    reply.code(200).send('ok')
+  })
+
+  const res = await fastify.inject({
+    method: 'GET',
+    url: '/foo'
+  })
+
+  t.equal(res.statusCode, 200)
+  t.equal(res.payload, 'ok')
+})
+
 test('Should fail if params schema is missing', async (t) => {
   t.plan(1)
 
@@ -133,11 +154,11 @@ test('Should fail if params schema is missing', async (t) => {
   await fastify.register(enforceSchema, { required: ['params'] })
 
   try {
-    fastify.post('/foo', { schema: {} }, (req, reply) => {
+    fastify.post('/foo/:bar', { schema: {} }, (req, reply) => {
       reply.code(201).send('ok')
     })
   } catch (error) {
-    t.equal(error.message, 'POST: /foo is missing a params schema')
+    t.equal(error.message, 'POST: /foo/:bar is missing a params schema')
   }
 })
 
@@ -317,13 +338,13 @@ test('enforce should be disabled for excluded paths via false option directly on
     required: ['params']
   })
 
-  fastify.get('/foo', { schema: { params: false } }, (req, reply) => {
+  fastify.get('/foo/:bar', { schema: { params: false } }, (req, reply) => {
     reply.code(200).send('exclude works')
   })
 
   const res = await fastify.inject({
     method: 'GET',
-    url: '/foo'
+    url: '/foo/test'
   })
 
   t.equal(res.statusCode, 200)
