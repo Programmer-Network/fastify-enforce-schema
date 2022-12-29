@@ -1,44 +1,44 @@
 const getErrrorMessage = (schemaType, routeOptions) => {
-  const { path, method } = routeOptions;
-  return `${method}: ${path} is missing a ${schemaType} schema`;
-};
+  const { path, method } = routeOptions
+  return `${method}: ${path} is missing a ${schemaType} schema`
+}
 
-exports.getErrrorMessage = getErrrorMessage;
+exports.getErrrorMessage = getErrrorMessage
 
 exports.hasProperties = (routeOptions, name) => {
-  return !!Object.keys(routeOptions?.schema?.[name]?.properties || []).length;
-};
+  return !!Object.keys(routeOptions?.schema?.[name]?.properties || []).length
+}
 
 exports.isSchemaTypeExcluded = (excludedEntity, schemaType) => {
-  return excludedEntity?.excludedSchemas?.includes(schemaType) || false;
-};
+  return excludedEntity?.excludedSchemas?.includes(schemaType) || false
+}
 
 exports.initialExcludes = [
   {
-    url: "/docs",
+    url: '/docs'
   },
   {
-    url: "/docs/uiConfig",
+    url: '/docs/uiConfig'
   },
   {
-    url: "/docs/initOAuth",
+    url: '/docs/initOAuth'
   },
   {
-    url: "/docs/json",
+    url: '/docs/json'
   },
   {
-    url: "/docs/yaml",
+    url: '/docs/yaml'
   },
   {
-    url: "/docs/*",
+    url: '/docs/*'
   },
   {
-    url: "/docs/static/*",
-  },
-];
+    url: '/docs/static/*'
+  }
+]
 
 exports.SCHEMA_TYPES = {
-  response: "response",
-  body: "body",
-  params: "params",
-};
+  response: 'response',
+  body: 'body',
+  params: 'params'
+}
