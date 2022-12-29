@@ -2,7 +2,7 @@
   "name": "fastify-enforce-schema",
   "url": "",
   "author": "Aleksandar Grbic - (https://programmer.network)",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Enforce AJV schemas across your endpoints.",
   "repository": {
     "type": "git",
@@ -12,7 +12,7 @@
   "types": "index.d.ts",
   "scripts": {
     "coverage": "tap --cov --coverage-report=html test",
-    "lint": "npm run lint:standard && npm run lint:typescript",
+    "lint": "npm run lint:standard",
     "lint:fix": "standard --fix",
     "lint:standard": "standard",
     "lint:typescript": "standard --parser @typescript-eslint/parser --plugin @typescript-eslint/eslint-plugin test/*.ts",

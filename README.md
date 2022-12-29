@@ -43,15 +43,24 @@ fastify.register(enforceSchema, options);
 
 - **exclude**: Endpoints to exclude by the _routeOptions.path_. Each exclude is an object, with a `url` and optional, `excludeSchemas` array. If the `excludeSchemas` array is not passed, validation for all 3 schemas (`body`, `respone`, `params`) is disabled.
 
-- **excludeOnFalseSchema** - If your controllers aren't returning anything, make sure to set the `response` schema to false. And then, set `excludeOnFalseSchema` to `true`, so that this plugin doesn't return errors for any given controller that has a response schema set to false.
+### **Excluding specific schemas**
+
+To disable schema validation for all three types (response, body, and params), you can set { schema: false }. If you only want to disable the schema for a specific type, you can do so by setting the corresponding key to false. For example, to disable schema validation for the response, you can use { response: false }.
 
 ```js
 await fastify.register(enforceSchema, {
-  required: ["response"],
-  excludeOnFalseSchema: true,
+  required: ["response", "body", "params"],
 });
 
-fastify.get("/foo", { schema: { response: false } }, (req, reply) => {
+fastify.get("/foo", { schema: false }, (req, reply) => {
   reply.code(200);
 });
+
+fastify.get(
+  "/bar",
+  { schema: { response: false, body: false, params: false } },
+  (req, reply) => {
+    reply.code(200);
+  }
+);
 ```
