@@ -31,7 +31,7 @@ test('Should pass if no options passed and schema validation explicitly disabled
   const fastify = Fastify()
 
   await fastify.register(enforceSchema)
-  
+
   fastify.get('/foo', { schema: false }, (req, reply) => {
     reply.code(201).send('ok')
   })
@@ -54,7 +54,7 @@ test('Should fail if no options passed: every POST should have a body unless exp
   await fastify.register(enforceSchema)
 
   try {
-    fastify.post('/foo', { schema: { response: { 201: {} } }}, (req, reply) => {
+    fastify.post('/foo', { schema: { response: { 201: {} } } }, (req, reply) => {
       reply.code(201).send('ok')
     })
   } catch (error) {
