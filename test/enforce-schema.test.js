@@ -4,10 +4,46 @@ const { test } = require('tap')
 const Fastify = require('fastify')
 const enforceSchema = require('../index.js')
 const {
-  getErrrorMessage,
+  getErrorMessage,
   hasProperties,
   isSchemaTypeExcluded
 } = require('../utils.js')
+
+test('Should fail if no options passed: every endpoint should have a schema', async (t) => {
+  t.plan(1)
+
+  const fastify = Fastify()
+
+  await fastify.register(enforceSchema)
+
+  try {
+    fastify.post('/foo', {}, (req, reply) => {
+      reply.code(201).send('ok')
+    })
+  } catch (error) {
+    t.equal(error.message, 'schema missing at the path POST: "/foo"')
+  }
+})
+
+test('Should pass if no options passed and schema validation explicitly disabled', async (t) => {
+  t.plan(2)
+
+  const fastify = Fastify()
+
+  await fastify.register(enforceSchema)
+  
+  fastify.post('/foo', { schema: false }, (req, reply) => {
+    reply.code(201).send('ok')
+  })
+
+  const res = await fastify.inject({
+    method: 'POST',
+    url: '/foo'
+  })
+
+  t.equal(res.statusCode, 201)
+  t.equal(res.payload, 'ok')
+})
 
 test('Should fail if schema is missing', async (t) => {
   t.plan(1)
@@ -132,7 +168,6 @@ test('Should NOT fail if params schema is missing', async (t) => {
 
   await fastify.register(enforceSchema, { required: ['params'] })
 
-  
   fastify.get('/foo', { schema: {} }, (req, reply) => {
     reply.code(200).send('ok')
   })
@@ -166,15 +201,15 @@ test('getErrorMessage should return a proper message', async (t) => {
   t.plan(3)
 
   t.equal(
-    getErrrorMessage('body', { path: '/bar', method: 'PUT' }),
+    getErrorMessage('body', { path: '/bar', method: 'PUT' }),
     'PUT: /bar is missing a body schema'
   )
   t.equal(
-    getErrrorMessage('response', { path: '/bar', method: 'PUT' }),
+    getErrorMessage('response', { path: '/bar', method: 'PUT' }),
     'PUT: /bar is missing a response schema'
   )
   t.equal(
-    getErrrorMessage('params', { path: '/bar', method: 'PUT' }),
+    getErrorMessage('params', { path: '/bar', method: 'PUT' }),
     'PUT: /bar is missing a params schema'
   )
 })

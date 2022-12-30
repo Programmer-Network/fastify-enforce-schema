@@ -1,17 +1,13 @@
 const fp = require('fastify-plugin')
 const {
-  getErrrorMessage,
+  getErrorMessage,
   hasProperties,
   initialExcludes,
   isSchemaTypeExcluded,
   SCHEMA_TYPES
 } = require('./utils')
 
-function FastifyEnforceSchema (fastify, opts, done) {
-  if (!opts) {
-    opts = {}
-  }
-
+function FastifyEnforceSchema (fastify, opts = {}, done) {
   if (!Object.prototype.hasOwnProperty.call(opts, 'required')) {
     opts.required = []
   }
@@ -59,7 +55,7 @@ function FastifyEnforceSchema (fastify, opts, done) {
       const schema = Object.keys(routeOptions?.schema?.response || [])
 
       if (!routeOptions?.schema?.response) {
-        throw new Error(getErrrorMessage(SCHEMA_TYPES.response, routeOptions))
+        throw new Error(getErrorMessage(SCHEMA_TYPES.response, routeOptions))
       }
 
       if (
@@ -88,17 +84,17 @@ function FastifyEnforceSchema (fastify, opts, done) {
       required.indexOf(SCHEMA_TYPES.body) !== -1 &&
       !hasProperties(routeOptions, SCHEMA_TYPES.body)
     ) {
-      throw new Error(getErrrorMessage(SCHEMA_TYPES.body, routeOptions))
+      throw new Error(getErrorMessage(SCHEMA_TYPES.body, routeOptions))
     }
 
     if (
       routeOptions?.schema?.params !== false &&
-      new RegExp(/:\w+/).test(routeOptions.url) &&
+      /:\w+/.test(routeOptions.url) &&
       !isSchemaTypeExcluded(excludedEntity, SCHEMA_TYPES.params) &&
       required.indexOf(SCHEMA_TYPES.params) !== -1 &&
       !hasProperties(routeOptions, SCHEMA_TYPES.params)
     ) {
-      throw new Error(getErrrorMessage(SCHEMA_TYPES.params, routeOptions))
+      throw new Error(getErrorMessage(SCHEMA_TYPES.params, routeOptions))
     }
   })
 

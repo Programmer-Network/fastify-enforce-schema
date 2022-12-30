@@ -1,9 +1,9 @@
-const getErrrorMessage = (schemaType, routeOptions) => {
+const getErrorMessage = (schemaType, routeOptions) => {
   const { path, method } = routeOptions
   return `${method}: ${path} is missing a ${schemaType} schema`
 }
 
-exports.getErrrorMessage = getErrrorMessage
+exports.getErrorMessage = getErrorMessage
 
 exports.hasProperties = (routeOptions, name) => {
   return !!Object.keys(routeOptions?.schema?.[name]?.properties || []).length
