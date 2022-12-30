@@ -32,17 +32,35 @@ test('Should pass if no options passed and schema validation explicitly disabled
 
   await fastify.register(enforceSchema)
   
-  fastify.post('/foo', { schema: false }, (req, reply) => {
+  fastify.get('/foo', { schema: false }, (req, reply) => {
     reply.code(201).send('ok')
   })
 
   const res = await fastify.inject({
-    method: 'POST',
+    method: 'GET',
     url: '/foo'
   })
 
   t.equal(res.statusCode, 201)
   t.equal(res.payload, 'ok')
+})
+
+test('Should fail if no options passed: every POST should have a body unless explicitly set to false', async (t) => {
+  t.plan(1)
+
+  const fastify = Fastify()
+
+  // NOTE: My understanding is that we shouldn't need to manually specify { required: ['body'] } for the body to be required, but this isn't current behavior
+  await fastify.register(enforceSchema)
+
+  try {
+    fastify.post('/foo', { schema: { response: { 201: {} } }}, (req, reply) => {
+      reply.code(201).send('ok')
+    })
+  } catch (error) {
+    // This is the error message I would expect to see
+    t.equal(error.message, 'POST: /foo is missing a body schema')
+  }
 })
 
 test('Should fail if schema is missing', async (t) => {
