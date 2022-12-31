@@ -21,7 +21,7 @@ function FastifyEnforceSchema (fastify, opts = {}, done) {
   if (!Object.prototype.hasOwnProperty.call(opts, 'disabled')) {
     opts.disabled = []
   }
-  if (opts.disabled === true) {
+  if (opts.disabled === true || (Array.isArray(opts.disabled) && isSchemaDisabled(opts.disabled))) {
     done()
     return
   }
@@ -55,7 +55,7 @@ function FastifyEnforceSchema (fastify, opts = {}, done) {
       return
     }
 
-    if (!routeOptions?.schema && !isSchemaDisabled(disabled)) {
+    if (!routeOptions?.schema) {
       throw new Error(getErrorMessage({ schema: true }, routeOptions))
     }
 
