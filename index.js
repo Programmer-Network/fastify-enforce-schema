@@ -21,7 +21,7 @@ function FastifyEnforceSchema (fastify, opts = {}, done) {
   if (!Object.prototype.hasOwnProperty.call(opts, 'disabled')) {
     opts.disabled = []
   }
-  if (opts.disabled == true) {
+  if (opts.disabled === true) {
     done()
     return
   }
@@ -62,7 +62,7 @@ function FastifyEnforceSchema (fastify, opts = {}, done) {
     if (
       routeOptions?.schema?.response !== false &&
       !isSchemaTypeExcluded(excludedEntity, SCHEMA_TYPES.response) &&
-      disabled.indexOf(SCHEMA_TYPES.response) == -1
+      disabled.indexOf(SCHEMA_TYPES.response) === -1
     ) {
       const schema = Object.keys(routeOptions?.schema?.response || [])
 
@@ -91,7 +91,7 @@ function FastifyEnforceSchema (fastify, opts = {}, done) {
       routeOptions?.schema?.body !== false &&
       !isSchemaTypeExcluded(excludedEntity, SCHEMA_TYPES.body) &&
       ['POST', 'PUT', 'PATCH'].includes(routeOptions.method) &&
-      disabled.indexOf(SCHEMA_TYPES.body) == -1 &&
+      disabled.indexOf(SCHEMA_TYPES.body) === -1 &&
       !hasProperties(routeOptions, SCHEMA_TYPES.body)
     ) {
       throw new Error(getErrorMessage({ schemaType: SCHEMA_TYPES.body }, routeOptions))
@@ -101,7 +101,7 @@ function FastifyEnforceSchema (fastify, opts = {}, done) {
       routeOptions?.schema?.params !== false &&
       /:\w+/.test(routeOptions.url) &&
       !isSchemaTypeExcluded(excludedEntity, SCHEMA_TYPES.params) &&
-      disabled.indexOf(SCHEMA_TYPES.params) == -1 &&
+      disabled.indexOf(SCHEMA_TYPES.params) === -1 &&
       !hasProperties(routeOptions, SCHEMA_TYPES.params)
     ) {
       throw new Error(getErrorMessage({ schemaType: SCHEMA_TYPES.params }, routeOptions))

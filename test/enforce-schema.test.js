@@ -3,11 +3,6 @@
 const { test } = require('tap')
 const Fastify = require('fastify')
 const enforceSchema = require('../index.js')
-const {
-  getErrorMessage,
-  hasProperties,
-  isSchemaTypeExcluded
-} = require('../utils.js')
 
 test('Should pass if plugin disabled', async (t) => {
   t.plan(2)
@@ -225,7 +220,7 @@ test('enforce should be disabled for excluded paths via false option directly on
 
   const fastify = Fastify()
 
-  await fastify.register(enforceSchema)  // , { required: ['response'] }
+  await fastify.register(enforceSchema) // , { required: ['response'] }
 
   fastify.get('/foo', { schema: false }, (req, reply) => {
     reply.code(200).send('exclude works')
