@@ -8,7 +8,7 @@ const {
   isSchemaDisabled
 } = require('./utils')
 
-function FastifyEnforceSchema (fastify, opts = {}, done) {
+function FastifyEnforceSchema (fastify, opts, done) {
   if (Object.prototype.hasOwnProperty.call(opts, 'required')) {
     process.emitWarning(
       'The `required` option for fastify-enforce-schema will be removed soon. Since all schemas are enforced by default, consider using the `exclude` option to exclude specific schemas.',
@@ -30,7 +30,7 @@ function FastifyEnforceSchema (fastify, opts = {}, done) {
     opts.exclude = []
   }
 
-  const { disabled, exclude } = opts // required,
+  const { disabled, exclude } = opts
 
   fastify.addHook('onRoute', (routeOptions) => {
     if (
@@ -64,7 +64,7 @@ function FastifyEnforceSchema (fastify, opts = {}, done) {
       !isSchemaTypeExcluded(excludedEntity, SCHEMA_TYPES.response) &&
       disabled.indexOf(SCHEMA_TYPES.response) === -1
     ) {
-      const schema = Object.keys(routeOptions?.schema?.response || [])
+      const responseKeys = Object.keys(routeOptions?.schema?.response || {})
 
       if (!routeOptions?.schema?.response) {
         throw new Error(getErrorMessage({ schemaType: SCHEMA_TYPES.response }, routeOptions))
@@ -72,19 +72,26 @@ function FastifyEnforceSchema (fastify, opts = {}, done) {
 
       if (
         routeOptions?.schema?.response &&
-        !Object.keys(routeOptions?.schema?.response || []).length
+        !responseKeys.length
       ) {
         throw new Error(getErrorMessage({ message: 'No HTTP status codes provided in the response schema' }, routeOptions))
       }
 
-      schema.forEach((value) => {
-        if (!Number.isInteger(parseInt(value, 10))) {
-          throw new Error(getErrorMessage({ message: `"${value}" is not a number. HTTP status codes from 100 - 599 supported` }, routeOptions))
+      responseKeys.forEach((value) => {
+        if (value === 'default' || ['1xx', '2xx', '3xx', '4xx', '5xx'].includes(value) || (value >= 100 && value <= 599)) {
+          if (hasProperties(routeOptions, SCHEMA_TYPES.response, value)) {
+            done()
+            return
+          }
+
+          throw new Error(getErrorMessage({ message: `${SCHEMA_TYPES.response} key "${value}" must be a non-empty object` }, routeOptions))
         }
 
-        if (value < 100 || value > 599) {
-          throw new Error(getErrorMessage({ message: 'HTTP status codes from 100 - 599 supported' }, routeOptions))
+        if (Number.isInteger(parseInt(value, 10))) {
+          throw new Error(getErrorMessage({ message: 'valid HTTP status codes range from 100 - 599' }, routeOptions))
         }
+
+        throw new Error(getErrorMessage({ message: `"${value}" is not "default" or a supported HTTP status code` }, routeOptions))
       })
     }
     if (

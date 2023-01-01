@@ -38,10 +38,48 @@ test('getErrorMessage should return a proper message', async (t) => {
   )
 })
 
-test('hasProperties should return 0 if no properties', async (t) => {
+test('hasProperties should return false if no properties', async (t) => {
   t.plan(1)
 
   t.equal(hasProperties(null, 'whatever'), false)
+})
+
+test('hasProperties should return true for response schema subkey', async (t) => {
+  t.plan(1)
+
+  const schema = {
+    schema: {
+      response: {
+        200: {
+          type: 'string'
+        }
+      }
+    }
+  }
+
+  t.equal(hasProperties(schema, 'response', 200), true)
+})
+
+test('hasProperties should return true for top-level schema', async (t) => {
+  t.plan(1)
+
+  const schema = {
+    schema: {
+      body: {
+        foo: {
+          type: 'string'
+        },
+        bar: {
+          type: 'string'
+        },
+        baz: {
+          type: 'string'
+        }
+      }
+    }
+  }
+
+  t.equal(hasProperties(schema, 'body'), true)
 })
 
 test('hasProperties should return true if at least one property exists', async (t) => {

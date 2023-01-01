@@ -15,8 +15,11 @@ exports.getErrorMessage = (data, routeOptions) => {
   return `${method} ${path}: ${data?.message}`
 }
 
-exports.hasProperties = (routeOptions, name) => {
-  return !!Object.keys(routeOptions?.schema?.[name]?.properties || []).length
+exports.hasProperties = (routeOptions, key, subKey = null) => {
+  if (!subKey) {
+    return !!Object.keys(routeOptions?.schema?.[key] || []).length
+  }
+  return !!Object.keys(routeOptions?.schema?.[key]?.[subKey] || []).length
 }
 
 exports.isSchemaTypeExcluded = (excludedEntity, schemaType) => {
