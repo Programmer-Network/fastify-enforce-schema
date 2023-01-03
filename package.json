@@ -2,7 +2,7 @@
   "name": "fastify-enforce-schema",
   "url": "",
   "author": "Aleksandar Grbic - (https://programmer.network)",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Enforce AJV schemas across your endpoints.",
   "repository": {
     "type": "git",
