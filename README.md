@@ -76,7 +76,7 @@ fastify.register((fastify, options, done) => {
 <!-- - **required**: response, body or params<br /> -->
 - **disabled**: Disable specific schemas (`body`, `response`, `params`) or disable the plugin by passing `true`. <br />
 
-- **exclude**: Endpoints to exclude by the `routeOptions.path`. Each exclude is an object with a `url` and (optional) `excludeSchemas` array. If the `excludeSchemas` array is not passed, validation for all 3 schemas (`body`, `response`, `params`) is disabled.
+- **exclude**: Endpoints to exclude by the `routeOptions.path`. Each exclude is an object with a `url` and (optional) `excludeSchemas` array. If the `excludeSchemas` array is not passed, validation for all 3 schemas (`body`, `response`, `params`) is disabled. Supports wildcards and any other RegEx features.
 
 By default, all schemas are enforced where appropriate.
 
