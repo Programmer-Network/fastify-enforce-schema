@@ -43,7 +43,7 @@ function FastifyEnforceSchema (fastify, opts, done) {
     }
 
     const excludedEntity = [...initialExcludes, ...exclude].find(
-      ({ url }) => url === routeOptions.path
+      ({ url }) => new RegExp(url).test(routeOptions.path)
     )
 
     const hasSchemas =
