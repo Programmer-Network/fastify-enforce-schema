@@ -4,15 +4,57 @@ const { test } = require('tap')
 const Fastify = require('fastify')
 const enforceSchema = require('../index.js')
 
-test('required should be deprecated', async (t) => {
+test('schema.disabled must be an array', async (t) => {
   t.plan(1)
 
-  process.on('warning', (warning) => {
-    t.equal(warning.name, 'DeprecationWarning')
-  })
+  const fastify = Fastify()
+  await fastify.register(enforceSchema, { disabled: ['response'] })
+
+  try {
+    fastify.post(
+      '/foo',
+      {
+        schema: {
+          disabled: false
+        }
+      },
+      (req, reply) => {
+        reply.code(200).send('Success')
+      }
+    )
+  } catch (error) {
+    t.equal(
+      error.message,
+      'FastifyEnforceSchema: In POST: /foo, schema.disabled must be an array.'
+    )
+  }
+})
+
+test('disabled should ignore enforced body schema', async (t) => {
+  t.plan(2)
 
   const fastify = Fastify()
-  await fastify.register(enforceSchema, { required: ['response', 'body', 'params'] })
+  await fastify.register(enforceSchema, { disabled: ['response'] })
+
+  fastify.post(
+    '/foo',
+    {
+      schema: {
+        disabled: ['body']
+      }
+    },
+    (req, reply) => {
+      reply.code(200).send('Success')
+    }
+  )
+  const res = await fastify.inject({
+    method: 'POST',
+    url: '/foo',
+    payload: { bar: 'string' }
+  })
+
+  t.equal(res.statusCode, 200)
+  t.equal(res.payload, 'Success')
 })
 
 test('response schema should fail if incomplete', async (t) => {
@@ -22,13 +64,17 @@ test('response schema should fail if incomplete', async (t) => {
   await fastify.register(enforceSchema)
 
   try {
-    fastify.get('/foo', { schema: { response: { 201: false } } }, (req, reply) => {
-      reply.code(201).send('ok')
-    })
+    fastify.get(
+      '/foo',
+      { schema: { response: { 201: false } } },
+      (req, reply) => {
+        reply.code(201).send('ok')
+      }
+    )
   } catch (err) {
     t.equal(
       err.message,
-      'GET /foo: response key "201" must be a non-empty object'
+      'FastifyEnforceSchema: In GET: /foo, schema response key "201" must be a non-empty object.'
     )
   }
 })
@@ -39,17 +85,21 @@ test('response schema should accept top-level properties', async (t) => {
   const fastify = Fastify()
   await fastify.register(enforceSchema)
 
-  fastify.get('/foo', {
-    schema: {
-      response: {
-        200: {
-          message: { type: 'string' }
+  fastify.get(
+    '/foo',
+    {
+      schema: {
+        response: {
+          200: {
+            message: { type: 'string' }
+          }
         }
       }
+    },
+    (req, reply) => {
+      reply.code(200).send({ message: 'ok' })
     }
-  }, (req, reply) => {
-    reply.code(200).send({ message: 'ok' })
-  })
+  )
 
   const res = await fastify.inject({
     method: 'GET',
@@ -66,17 +116,21 @@ test('Should pass if response schema is upheld', async (t) => {
   const fastify = Fastify()
   await fastify.register(enforceSchema)
 
-  fastify.get('/foo', {
-    schema: {
-      response: {
-        200: {
-          type: 'string'
+  fastify.get(
+    '/foo',
+    {
+      schema: {
+        response: {
+          200: {
+            type: 'string'
+          }
         }
       }
+    },
+    (req, reply) => {
+      reply.code(200).send('ok')
     }
-  }, (req, reply) => {
-    reply.code(200).send('ok')
-  })
+  )
 
   const res = await fastify.inject({
     method: 'GET',
@@ -92,17 +146,21 @@ test('Should pass if response contains default key', async (t) => {
   const fastify = Fastify()
   await fastify.register(enforceSchema)
 
-  fastify.get('/foo', {
-    schema: {
-      response: {
-        default: {
-          type: 'string'
+  fastify.get(
+    '/foo',
+    {
+      schema: {
+        response: {
+          default: {
+            type: 'string'
+          }
         }
       }
+    },
+    (req, reply) => {
+      reply.code(200).send('ok')
     }
-  }, (req, reply) => {
-    reply.code(200).send('ok')
-  })
+  )
 
   const res = await fastify.inject({
     method: 'GET',
@@ -118,15 +176,19 @@ test('body schema should accept top-level properties', async (t) => {
   const fastify = Fastify()
   await fastify.register(enforceSchema, { disabled: ['response'] })
 
-  fastify.post('/foo', {
-    schema: {
-      body: {
-        bar: { type: 'string' }
+  fastify.post(
+    '/foo',
+    {
+      schema: {
+        body: {
+          bar: { type: 'string' }
+        }
       }
+    },
+    (req, reply) => {
+      reply.code(200).send('ok')
     }
-  }, (req, reply) => {
-    reply.code(200).send('ok')
-  })
+  )
 
   const res = await fastify.inject({
     method: 'POST',
@@ -143,15 +205,19 @@ test('body schema should fail if request contradicts schema', async (t) => {
   const fastify = Fastify()
   await fastify.register(enforceSchema, { disabled: ['response'] })
 
-  fastify.post('/foo', {
-    schema: {
-      body: {
-        bar: { type: 'string' }
+  fastify.post(
+    '/foo',
+    {
+      schema: {
+        body: {
+          bar: { type: 'string' }
+        }
       }
+    },
+    (req, reply) => {
+      reply.code(200).send('ok')
     }
-  }, (req, reply) => {
-    reply.code(200).send('ok')
-  })
+  )
 
   const res = await fastify.inject({
     method: 'POST',
@@ -168,19 +234,23 @@ test('Should fail if required body property is missing', async (t) => {
   const fastify = Fastify()
   await fastify.register(enforceSchema, { disabled: ['response'] })
 
-  fastify.post('/foo', {
-    schema: {
-      body: {
-        type: 'object',
-        properties: {
-          foo: { type: 'string' }
-        },
-        required: ['foo']
+  fastify.post(
+    '/foo',
+    {
+      schema: {
+        body: {
+          type: 'object',
+          properties: {
+            foo: { type: 'string' }
+          },
+          required: ['foo']
+        }
       }
+    },
+    (req, reply) => {
+      reply.code(200).send('ok')
     }
-  }, (req, reply) => {
-    reply.code(200).send('ok')
-  })
+  )
 
   const res = await fastify.inject({
     method: 'POST',
@@ -196,19 +266,23 @@ test('Should pass if body schema is upheld', async (t) => {
   const fastify = Fastify()
   await fastify.register(enforceSchema, { disabled: ['response'] })
 
-  fastify.post('/foo', {
-    schema: {
-      body: {
-        type: 'object',
-        properties: {
-          bar: { type: 'string' }
-        },
-        required: ['bar']
+  fastify.post(
+    '/foo',
+    {
+      schema: {
+        body: {
+          type: 'object',
+          properties: {
+            bar: { type: 'string' }
+          },
+          required: ['bar']
+        }
       }
+    },
+    (req, reply) => {
+      reply.code(200).send('ok')
     }
-  }, (req, reply) => {
-    reply.code(200).send('ok')
-  })
+  )
 
   const res = await fastify.inject({
     method: 'POST',
@@ -225,15 +299,19 @@ test('params schema should accept top-level properties', async (t) => {
   const fastify = Fastify()
   await fastify.register(enforceSchema, { disabled: ['response'] })
 
-  fastify.get('/foo/:bar', {
-    schema: {
-      params: {
-        bar: { type: 'string' }
+  fastify.get(
+    '/foo/:bar',
+    {
+      schema: {
+        params: {
+          bar: { type: 'string' }
+        }
       }
+    },
+    (req, reply) => {
+      reply.code(200).send('ok')
     }
-  }, (req, reply) => {
-    reply.code(200).send('ok')
-  })
+  )
 
   const res = await fastify.inject({
     method: 'GET',
@@ -249,15 +327,19 @@ test('params schema should fail if request contradicts schema', async (t) => {
   const fastify = Fastify()
   await fastify.register(enforceSchema, { disabled: ['response'] })
 
-  fastify.get('/foo/:bar', {
-    schema: {
-      params: {
-        bar: { type: 'number' }
+  fastify.get(
+    '/foo/:bar',
+    {
+      schema: {
+        params: {
+          bar: { type: 'number' }
+        }
       }
+    },
+    (req, reply) => {
+      reply.code(200).send('ok')
     }
-  }, (req, reply) => {
-    reply.code(200).send('ok')
-  })
+  )
 
   const res = await fastify.inject({
     method: 'GET',
@@ -273,15 +355,19 @@ test('Should pass if params schema is upheld', async (t) => {
   const fastify = Fastify()
   await fastify.register(enforceSchema, { disabled: ['response'] })
 
-  fastify.get('/foo/:bar', {
-    schema: {
-      params: {
-        bar: { type: 'string' }
+  fastify.get(
+    '/foo/:bar',
+    {
+      schema: {
+        params: {
+          bar: { type: 'string' }
+        }
       }
+    },
+    (req, reply) => {
+      reply.code(200).send('ok')
     }
-  }, (req, reply) => {
-    reply.code(200).send('ok')
-  })
+  )
 
   const res = await fastify.inject({
     method: 'GET',
@@ -323,7 +409,10 @@ test('Should fail if schema is missing', async (t) => {
       reply.code(201).send('ok')
     })
   } catch (error) {
-    t.equal(error.message, 'POST: /foo is missing a schema')
+    t.equal(
+      error.message,
+      'FastifyEnforceSchema: POST: /foo is missing a schema'
+    )
   }
 })
 
@@ -339,7 +428,10 @@ test('Should fail if body schema is missing', async (t) => {
       reply.code(201).send('ok')
     })
   } catch (error) {
-    t.equal(error.message, 'POST: /foo is missing a body schema')
+    t.equal(
+      error.message,
+      'FastifyEnforceSchema: POST: /foo is missing a body schema'
+    )
   }
 })
 
@@ -354,7 +446,10 @@ test('Should fail if response schema is missing', async (t) => {
       reply.code(201).send('ok')
     })
   } catch (error) {
-    t.equal(error.message, 'POST: /foo is missing a response schema')
+    t.equal(
+      error.message,
+      'FastifyEnforceSchema: POST: /foo is missing a response schema'
+    )
   }
 })
 
@@ -380,7 +475,7 @@ test('Should fail if response schema values are not integers between 100 - 599',
   } catch (error) {
     t.equal(
       error.message,
-      'POST /foo: "dog" is not "default" or a supported HTTP status code'
+      'FastifyEnforceSchema: In POST: /foo, "dog" is not `default` or a supported HTTP status code.'
     )
   }
 })
@@ -459,7 +554,10 @@ test('Should fail if params schema is missing', async (t) => {
       reply.code(201).send('ok')
     })
   } catch (error) {
-    t.equal(error.message, 'GET: /foo/:bar is missing a params schema')
+    t.equal(
+      error.message,
+      'FastifyEnforceSchema: GET: /foo/:bar is missing a params schema'
+    )
   }
 })
 
@@ -530,7 +628,7 @@ test('enforce should be disabled for excluded paths via false option directly on
 
   await fastify.register(enforceSchema, { disabled: ['response'] })
 
-  fastify.post('/foo', { schema: { body: false } }, (req, reply) => {
+  fastify.post('/foo', { schema: { disabled: ['body'] } }, (req, reply) => {
     reply.code(200).send('exclude works')
   })
 
@@ -550,9 +648,13 @@ test('enforce should be disabled for excluded paths via false option directly on
 
   await fastify.register(enforceSchema, { disabled: ['response'] })
 
-  fastify.get('/foo/:bar', { schema: { params: false } }, (req, reply) => {
-    reply.code(200).send('exclude works')
-  })
+  fastify.get(
+    '/foo/:bar',
+    { schema: { disabled: ['params'] } },
+    (req, reply) => {
+      reply.code(200).send('exclude works')
+    }
+  )
 
   const res = await fastify.inject({
     method: 'GET',
@@ -608,7 +710,7 @@ test('No http status codes set in schema for response schema', async (t) => {
   } catch (err) {
     t.equal(
       err.message,
-      'GET /foo: No HTTP status codes provided in the response schema'
+      'FastifyEnforceSchema: In GET: /foo, no HTTP status codes were provided in the response schema.'
     )
   }
 })
@@ -625,6 +727,9 @@ test('Http status code outside support set in schema for required schema type', 
       reply.code(200).send('exclude works')
     })
   } catch (err) {
-    t.equal(err.message, 'GET /foo: valid HTTP status codes range from 100 - 599')
+    t.equal(
+      err.message,
+      'FastifyEnforceSchema: In GET: /foo, schema response key "600" must be a valid HTTP code which ranges from 100 - 599.'
+    )
   }
 })

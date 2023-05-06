@@ -7,21 +7,26 @@
   <img width="250" src="./assets/images/badge.png">
 </p>
 
-This plugin enables you to enforce `response`, `body` and `params` schemas on your controllers. The sentiment behind this is that no endpoint should ever be left without validation, and now you can enforce this on your application level, so no endpoints are released without the validation.
+This plugin enables you to enforce `response`, `body` and `params` schemas on your controllers. The sentiment behind this is that no endpoint should ever be left without validation, and now you can enforce this during their registration, so no endpoints are released without validation.
 
-The plugin works by "hooking" into the [`onRoute hook`](https://www.fastify.io/docs/latest/Reference/Hooks/#onroute) which as described in the docs, triggers when a new route is registered.
+The plugin works by "hooking" into the [`onRoute Fastify hook`](https://www.fastify.io/docs/latest/Reference/Hooks/#onroute) which, as described in the docs, triggers when a new route is registered.
 
 _This plugin is built together with our [Programmer Network](https://programmer.network/) Community. You can join us on [Twitch](https://twitch.tv/programmer_network) and [Discord](https://discord.gg/ysnpXnY7ba)._
 
 ## Install
 
-Using [npm](https://nodejs.org/en/):
+### Requirements
 
-- `npm i fastify-enforce-schema`
+- [Fastify](https://www.npmjs.com/package/fastify) v4.x
 
-Using [yarn](https://yarnpkg.com/):
+### From [`npm`](https://www.npmjs.com/fastify-enforce-schema)
 
-- `yarn add fastify-enforce-schema`
+```
+npm install fastify-enforce-schema       # npm
+yarn add fastify-enforce-schema          # yarn
+pnpm add fastify-enforce-schema          # pnpm
+bun add fastify-enforce-schema           # bun
+```
 
 ## Usage
 
@@ -33,9 +38,14 @@ import Fastify from 'fastify'
 import enforceSchema from 'fastify-enforce-schema'
 
 const fastify = Fastify()
+
+// Register the plugin
 await fastify.register(enforceSchema, { 
-  // options
+  // options (described below)
 })
+
+// Register your routes
+// your route definitions here...
 ```
 > _Note_: top-level await requires Node.js 14.8.0 or later
 
@@ -44,9 +54,12 @@ await fastify.register(enforceSchema, {
 const fastify = require('fastify')()
 const enforceSchema = require('fastify-enforce-schema')
 
+// Register the plugin
 fastify.register(enforceSchema, { 
-  // options
+  // options (described below)
 })
+
+// Register your routes
 fastify.register((fastify, options, done) => {
   // your route definitions here...
   
@@ -85,22 +98,20 @@ By default, all schemas are enforced where appropriate.
 ### Disable schema enforcement on specific routes
 
 ```js
-// Exclude all schemas
+// Disable all schemas
 fastify.get('/foo', { schema: false }, (req, reply) => {
   reply.code(200)
 })
 
-// Exclude response and params schemas
+// Disable response and params schemas
 fastify.get(
-  '/bar:baz',
-  { schema: { response: false, params: false } },
-  (req, reply) => {
+  '/bar:baz', { schema: { disabled: ['response', 'params'] } }, (req, reply) => {
     reply.code(200)
   }
 )
 
-// Exclude body schema
-fastify.post('/baz', { schema: { body: false } }, (req, reply) => {
+// Disable body schema
+fastify.post('/baz', { schema: { disabled: ['body'] } }, (req, reply) => {
   reply.code(200)
 })
 ```
