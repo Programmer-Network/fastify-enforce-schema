@@ -26,15 +26,18 @@ test('getErrorMessage should return a proper message', async (t) => {
 
   t.equal(
     getErrorMessage({ schemaType: 'body' }, { path: '/bar', method: 'PUT' }),
-    'PUT: /bar is missing a body schema'
+    'FastifyEnforceSchema: PUT: /bar is missing a body schema'
   )
   t.equal(
-    getErrorMessage({ schemaType: 'response' }, { path: '/bar', method: 'PUT' }),
-    'PUT: /bar is missing a response schema'
+    getErrorMessage(
+      { schemaType: 'response' },
+      { path: '/bar', method: 'PUT' }
+    ),
+    'FastifyEnforceSchema: PUT: /bar is missing a response schema'
   )
   t.equal(
     getErrorMessage({ schemaType: 'params' }, { path: '/bar', method: 'PUT' }),
-    'PUT: /bar is missing a params schema'
+    'FastifyEnforceSchema: PUT: /bar is missing a params schema'
   )
 })
 
@@ -116,10 +119,7 @@ test("isSchemaTypeExcluded should return true if its excluded inside 'excludedSc
   )
 
   t.equal(isSchemaTypeExcluded({ excludedSchemas: ['body'] }, 'body'), true)
-  t.equal(
-    isSchemaTypeExcluded({ excludedSchemas: ['params'] }, 'params'),
-    true
-  )
+  t.equal(isSchemaTypeExcluded({ excludedSchemas: ['params'] }, 'params'), true)
 
   t.equal(
     isSchemaTypeExcluded(
