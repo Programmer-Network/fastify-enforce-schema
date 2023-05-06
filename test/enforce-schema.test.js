@@ -4,17 +4,6 @@ const { test } = require('tap')
 const Fastify = require('fastify')
 const enforceSchema = require('../index.js')
 
-// test('required should be deprecated', async (t) => {
-//   t.plan(1)
-
-//   process.on('warning', (warning) => {
-//     t.equal(warning.name, 'DeprecationWarning')
-//   })
-
-//   const fastify = Fastify()
-//   await fastify.register(enforceSchema, { required: ['response', 'body', 'params'] })
-// })
-
 test('response schema should fail if incomplete', async (t) => {
   t.plan(1)
 

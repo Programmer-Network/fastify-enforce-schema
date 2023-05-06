@@ -10,15 +10,6 @@ const {
 } = require('./utils')
 
 function FastifyEnforceSchema (fastify, opts, done) {
-  //   if (Object.prototype.hasOwnProperty.call(opts, 'required')) {
-  //     process.emitWarning(
-  //       'The `required` option for fastify-enforce-schema will be removed soon. Since all schemas are enforced by default, consider using the `exclude` option to exclude specific schemas.',
-  //       'DeprecationWarning'
-  //     )
-  //   } else {
-  //     opts.required = []
-  //   }
-
   if (!Object.prototype.hasOwnProperty.call(opts, 'disabled')) {
     opts.disabled = []
   }
