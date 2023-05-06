@@ -17,7 +17,7 @@ _This plugin is built together with our [Programmer Network](https://programmer.
 
 ### Requirements
 
-- Fastify v4.x
+- [Fastify](https://www.npmjs.com/package/fastify) v4.x
 
 ### From [`npm`](https://www.npmjs.com/fastify-enforce-schema)
 
