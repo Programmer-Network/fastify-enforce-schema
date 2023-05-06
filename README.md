@@ -38,9 +38,14 @@ import Fastify from 'fastify'
 import enforceSchema from 'fastify-enforce-schema'
 
 const fastify = Fastify()
+
+// Register the plugin
 await fastify.register(enforceSchema, { 
-  // options
+  // options (described below)
 })
+
+// Register your routes
+// your route definitions here...
 ```
 > _Note_: top-level await requires Node.js 14.8.0 or later
 
@@ -49,9 +54,12 @@ await fastify.register(enforceSchema, {
 const fastify = require('fastify')()
 const enforceSchema = require('fastify-enforce-schema')
 
+// Register the plugin
 fastify.register(enforceSchema, { 
   // options (described below)
 })
+
+// Register your routes
 fastify.register((fastify, options, done) => {
   // your route definitions here...
   
